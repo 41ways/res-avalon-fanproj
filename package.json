@@ -1,0 +1,14 @@
+{
+  "name": "res-avalon-fanproj",
+  "private": true,
+  "type": "module",
+  "description": "은빛 서약 · 봉화 — 숨은 역할 온라인 파티 게임 (비공식 팬 프로젝트)",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/sim.js",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

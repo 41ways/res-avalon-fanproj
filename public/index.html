@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ko" data-theme="knights">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>은빛 서약 — 숨은 역할 온라인 파티 게임</title>
+<meta name="description" content="5~10명이 각자 폰으로 들어와 하는 숨은 역할 게임. 방을 만들고 초대 코드로 모여 다섯 원정을 떠난다. 은빛 서약 · 봉화 두 테마.">
+<meta property="og:title" content="은빛 서약 — 숨은 역할 온라인 파티 게임">
+<meta property="og:description" content="방을 만들고 친구를 불러 5~10명이 하는 숨은 역할 게임. 비공식 팬 프로젝트.">
+<meta property="og:image" content="https://res-avalon-fanproj.41ways.workers.dev/art/og.jpg">
+<meta name="theme-color" content="#0b1124">
+<link rel="icon" href="art/knights/crown.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=East+Sea+Dokdo&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@700;800&family=Song+Myung&display=swap">
+<link rel="stylesheet" href="style.css?v=1">
+<style>
+/* ── 온라인 전용: 처음 화면 · 방 목록 · 대기실 · 채팅 ── */
+:root { --bgimg: url(art/knights/bg.webp); --tok: url(art/knights/token.webp); --back: url(art/knights/back.webp); }
+html[data-theme="bonghwa"] { --gold: #FF8A3D; --gold-hi: #FFC86B; --gold-deep: #B4421A; --bg: #0A0F1E; --bg-2: #131B31; }
+html[data-theme="bonghwa"] .brand h1 { font-family: "East Sea Dokdo", "Song Myung", serif; letter-spacing: .02em; font-weight: 400; }
+html[data-theme="bonghwa"] .quest .sh .n { display: none; }
+.hero.title { min-height: min(78vh, 640px); display: grid; align-content: end; }
+.hero.title .topnav { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 18px); right: max(16px, env(safe-area-inset-right, 0px)); }
+.hero.title .brand { flex-direction: column; align-items: flex-start; gap: 6px; }
+.hero.title .brand h1 { font-size: clamp(64px, 13vw, 140px); }
+.hero.title .brand p { font-size: clamp(15px, 2.4vw, 20px); }
+.title-acts { display: flex; flex-wrap: wrap; gap: 12px; padding: 26px 0 40px; }
+.title-acts .btn { min-width: 180px; }
+.online { color: var(--dim); font-size: 13px; display: inline-flex; gap: 6px; align-items: center; }
+.online i { width: 8px; height: 8px; border-radius: 50%; background: #6fcf97; box-shadow: 0 0 8px #6fcf97; }
+.online.off i { background: var(--dim); box-shadow: none; }
+.feat { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 8px 0 26px; }
+.feat .panel h3 { font-size: 18px; }
+.feat .panel p { color: var(--dim); font-size: 14.5px; }
+.themes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.themes button { display: grid; gap: 6px; padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: rgba(0, 0, 0, .2); text-align: left; }
+.themes button[aria-pressed="true"] { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; background: rgba(242, 199, 107, .07); }
+.themes img { width: 100%; aspect-ratio: 16 / 7; object-fit: cover; border-radius: 6px; }
+.themes .t { font-family: var(--f-head); font-weight: 700; font-size: 17px; }
+.themes .d { color: var(--dim); font-size: 13px; }
+.lobby-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 20px; align-items: start; padding: 22px 0 10px; }
+@media (max-width: 880px) { .lobby-grid { grid-template-columns: minmax(0, 1fr); } }
+.field { display: grid; gap: 6px; }
+.field label, .sub-h { font-size: 13px; color: var(--dim); }
+.inp { width: 100%; padding: 11px 13px; border-radius: 8px; border: 1px solid var(--line); background: rgba(0, 0, 0, .3); font-size: 16px; }
+.inp:focus { outline: none; border-color: var(--gold); }
+.code-inp { text-transform: uppercase; letter-spacing: .3em; font-family: var(--f-head); font-weight: 800; max-width: 9em; }
+.rlist { display: grid; gap: 8px; }
+.ritem { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: rgba(0, 0, 0, .22); text-align: left; width: 100%; }
+.ritem:not(:disabled):hover { border-color: rgba(242, 199, 107, .55); background: rgba(242, 199, 107, .06); }
+.ritem img { width: 64px; height: 44px; object-fit: cover; border-radius: 6px; }
+.ritem .t { font-family: var(--f-head); font-weight: 700; font-size: 16px; }
+.ritem .m { color: var(--dim); font-size: 13px; }
+.ritem .st { font-size: 12.5px; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--line); white-space: nowrap; }
+.ritem .st.wait { color: #6fcf97; border-color: rgba(111, 207, 151, .5); }
+.ritem .st.playing { color: var(--red-hi); border-color: rgba(226, 86, 106, .5); }
+.ritem:disabled { opacity: .55; cursor: default; }
+.empty { color: var(--dim); font-size: 14.5px; padding: 18px; text-align: center; border: 1px dashed var(--line); border-radius: 10px; }
+.roomcode { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.roomcode b { font-family: var(--f-head); font-weight: 800; font-size: 34px; letter-spacing: .25em; color: var(--gold-hi); }
+.seatlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.slot { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: rgba(0, 0, 0, .22); min-height: 52px; }
+.slot .av { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-head); font-weight: 800; background: radial-gradient(circle at 40% 35%, var(--c1), var(--c2)); border: 1.5px solid rgba(255, 255, 255, .3); }
+.slot .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.slot .tag { font-size: 11.5px; color: var(--gold-hi); }
+.slot.me { border-color: rgba(242, 199, 107, .55); }
+.slot.off { opacity: .5; }
+.slot.free { color: var(--dim); font-size: 13px; justify-content: center; border-style: dashed; }
+.slot .x { border: 0; background: none; color: var(--dim); font-size: 18px; padding: 0 4px; }
+.chatbox { display: grid; gap: 8px; }
+.chatlog { height: 190px; overflow-y: auto; display: grid; align-content: start; gap: 4px; font-size: 14px; padding-right: 4px; overscroll-behavior: contain; }
+.chatlog .c b { color: var(--gold-hi); font-weight: 700; margin-right: 6px; }
+.chatlog .c.sys { color: var(--dim); font-size: 13px; }
+.chatlog .c.mine b { color: var(--teal); }
+.chatform { display: flex; gap: 8px; }
+.chatform .inp { padding: 9px 12px; font-size: 15px; min-width: 0; }
+.chatform .btn { white-space: nowrap; flex: none; }
+.waitnote { color: var(--dim); font-size: 14px; }
+.myturn { animation: glow 1.6s ease-in-out infinite alternate; }
+@keyframes glow { from { box-shadow: 0 0 0 0 rgba(242, 199, 107, .0); } to { box-shadow: 0 0 0 4px rgba(242, 199, 107, .25); } }
+.vbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vbtns button { display: grid; justify-items: center; gap: 4px; padding: 12px 8px; border-radius: 10px; border: 1.5px solid var(--line); background: rgba(0, 0, 0, .25); }
+.vbtns button img { width: 44px; height: 44px; }
+.vbtns button { padding: 8px 6px; }
+.vbtns button .t { font-family: var(--f-head); font-weight: 800; font-size: 18px; }
+.vbtns button[aria-pressed="true"].y { border-color: var(--gold); background: rgba(242, 199, 107, .12); }
+.vbtns button[aria-pressed="true"].n { border-color: var(--red); background: rgba(226, 86, 106, .12); }
+.conn { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 10px); transform: translateX(-50%); z-index: 80; background: rgba(109, 22, 38, .92); border: 1px solid var(--red); padding: 6px 14px; border-radius: 99px; font-size: 13.5px; }
+.seat.voted::after { content: "✓"; position: absolute; right: 8%; top: 4%; width: calc(4 * var(--u)); height: calc(4 * var(--u)); border-radius: 50%; display: grid; place-items: center; background: var(--gold); color: #2a1a05; font-size: calc(2.4 * var(--u)); font-weight: 800; }
+.seat.offline .med { filter: grayscale(1) brightness(.5); }
+.seat.me .nm { color: var(--gold-hi); }
+
+/* ── 채팅은 늘 손 닿는 곳: 넓은 화면은 오른쪽 기둥을 채우고, 좁은 화면은 아래에 붙는다 ── */
+.left { display: grid; gap: 14px; align-content: start; }
+.chat-tog { display: none; }
+.lobby-grid.room { grid-template-columns: minmax(0, 1.15fr) minmax(330px, 410px); }
+.lobby-grid.room .themes img { aspect-ratio: 16 / 5; }
+.lobby-grid.room .comp { grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 6px; }
+.lobby-grid.room .chip .cap { font-size: 11.5px; padding: 12px 4px 4px; }
+.lobby-grid.room .opt { padding: 8px 10px; }
+.seatlist { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; }
+.slot { min-height: 44px; padding: 6px 8px; gap: 8px; }
+.slot .av { width: 28px; height: 28px; font-size: 14px; }
+.slot .nm { font-size: 14px; line-height: 1.25; }
+@media (min-width: 901px) {
+  .side, .room-side { position: sticky; top: 8px; height: calc(100svh - 74px); display: flex; flex-direction: column; gap: 12px; }
+  .side > .qt, .room-side > .panel:not(.chatbox) { flex: none; }
+  .side > .dock { flex: none; }
+  .side > .chatbox, .room-side > .chatbox { padding: 12px 14px; gap: 6px; }
+  .side > .chatbox h3 { font-size: 16px; margin: 0; }
+  .side { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+  .side > .chatbox, .room-side > .chatbox { flex: 1 1 auto; min-height: 150px; display: flex; flex-direction: column; }
+  .chatbox .chatlog { flex: 1 1 auto; height: auto; min-height: 0; }
+  .end-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 400px); gap: 20px; align-items: start; padding-top: 10px; }
+}
+@media (max-width: 900px) {
+  .lobby-grid.room { grid-template-columns: minmax(0, 1fr); }
+  .lobby-grid.room .room-side { order: -1; display: grid; gap: 12px; }
+  .left { display: contents; }
+  .board .stage-wrap { order: 0; } .board .dock { order: 1; } .board .chron { order: 2; }
+  .end-grid { display: grid; gap: 14px; padding-top: 10px; }
+  body.has-chat { padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px)); }
+  .chatbox.float { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; margin: 0; border-radius: 14px 14px 0 0; border-bottom: 0;
+    padding: 6px max(12px, env(safe-area-inset-left, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)); gap: 6px;
+    background: rgba(9, 13, 28, .97); box-shadow: 0 -10px 30px rgba(0, 0, 0, .5); }
+  .chatbox.float h3 { display: none; }
+  .chatbox.float .chatlog { height: 62px; font-size: 13.5px; }
+  .chatbox.float.open .chatlog { height: 42vh; }
+  .chat-tog { display: inline-grid; place-items: center; flex: none; width: 40px; padding: 0; }
+}
+</style>
+</head>
+<body>
+<header class="hero" id="hero">
+  <img class="hero-bg" id="heroBg" src="art/knights/bg.webp" alt="">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand" id="brand"></div>
+      <nav class="topnav" id="topnav"></nav>
+    </div>
+    <div class="quests" id="quests" aria-label="다섯 원정 진행"></div>
+  </div>
+</header>
+<main class="wrap" id="main"></main>
+<div class="ov" id="ov" hidden></div>
+<div id="fx"></div>
+<div class="toast" id="toast" hidden></div>
+<div class="conn" id="conn" hidden>연결이 끊겼어요 · 다시 붙는 중</div>
+<script type="module" src="app.js?v=1"></script>
+</body>
+</html>
