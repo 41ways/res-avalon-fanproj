@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>은빛 서약 · 봉화 — 한 기기로</title>
+<title>Resistance:AVALON — 한 기기로</title>
 <meta name="description" content="태블릿 하나로 5~10명이 둘러앉아 하는 숨은 역할 게임. 다섯 번의 원정, 그 틈에 숨은 배신자.">
-<meta property="og:title" content="은빛 서약 · 봉화 — 한 기기로">
+<meta property="og:title" content="Resistance:AVALON — 한 기기로">
 <meta property="og:description" content="태블릿 하나로 5~10명이 하는 숨은 역할 게임. 비공식 팬 프로젝트.">
 <meta property="og:image" content="https://res-avalon-fanproj.41ways.workers.dev/art/og.jpg">
 <meta name="theme-color" content="#0b1124">
 <link rel="icon" href="art/knights/crown.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=East+Sea+Dokdo&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@700;800&family=Song+Myung&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=East+Sea+Dokdo&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@700;800&family=Song+Myung&display=swap">
 <style>
 /* 밤의 탁자. 판 중에는 가운데 둥근 탁자(위에서 내려다본 모습)에 모두가 둘러앉고, 옆 칸에 원정 기록·할 일·연대기.
    눈에 보이는 상호작용: 대장 표식(왕관·횃불)이 탁자를 따라 옮겨 가고, 원정대 표식이 놓이고, 인장이 차례로 찍히고, 출정·결과 공개는 장면 연출 */
@@ -82,13 +82,20 @@ b { color: #fff; }
 .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-top: calc(env(safe-area-inset-top, 0px) + 16px); }
 .brand h1 { font-family: var(--f-head); font-size: clamp(46px, 8vw, 78px); line-height: 1; letter-spacing: .05em; text-shadow: 0 2px 18px rgba(0, 0, 0, .6), 0 0 30px rgba(242, 199, 107, .25); }
 .brand p { font-family: var(--f-head); font-weight: 700; font-size: clamp(13px, 1.8vw, 16px); letter-spacing: .12em; color: var(--gold-hi); text-shadow: 0 1px 6px #000; margin-top: 4px; }
+/* 라틴 제목 로고: 윗줄 RESISTANCE(작게, 넓게), 아랫줄 AVALON(크게). em 이라 h1·장면 제목 크기를 따라간다 */
+.wm-pre, .wm-main { display: block; font-family: "Cinzel", var(--f-head); }
+.wm-pre { font-weight: 600; font-size: .27em; letter-spacing: .5em; text-transform: uppercase; color: var(--gold-hi); margin: 0 0 .2em .06em; }
+.wm-main { font-weight: 700; letter-spacing: inherit; }
+.brand .wm-main { letter-spacing: .1em; }
+.ingame .brand .wm-pre, .ingame .brand .wm-main { display: inline; }
+.ingame .brand .wm-pre { font-size: .42em; letter-spacing: .32em; margin: 0 .5em 0 0; vertical-align: .18em; }
 .topnav { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .topnav .btn { background: rgba(11, 17, 36, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 .ingame .hero { overflow: visible; }
 .ingame .hero-bg, .ingame .hero::after, .ingame #quests { display: none; }
 .ingame .topbar { align-items: center; padding-top: calc(env(safe-area-inset-top, 0px) + 10px); padding-bottom: 4px; }
 .ingame .brand { display: flex; align-items: baseline; gap: 10px; }
-.ingame .brand h1 { font-size: 30px; }
+.ingame .brand h1 { font-size: 28px; }
 .ingame .brand p { font-size: 12.5px; margin: 0; }
 
 /* 다섯 원정 (설정·끝 화면의 큰 줄) */
@@ -578,7 +585,7 @@ html[data-theme="bonghwa"] .quest .sh .n { inset: auto 0 14%; color: #EDE4D0; te
   <img class="hero-bg" id="heroBg" src="art/knights/bg.webp" alt="">
   <div class="wrap">
     <div class="topbar">
-      <div class="brand" id="brand"><h1>은빛 서약</h1><p>다섯 원정, 숨은 그림자</p></div>
+      <div class="brand" id="brand"><h1><span class="wm-pre">Resistance</span><span class="wm-main">AVALON</span></h1><p>다섯 원정, 숨은 그림자</p></div>
       <nav class="topnav" id="topnav"></nav>
     </div>
     <div class="quests" id="quests" aria-label="다섯 원정 진행"></div>
@@ -590,7 +597,7 @@ html[data-theme="bonghwa"] .quest .sh .n { inset: auto 0 14%; color: #EDE4D0; te
 <div class="toast" id="toast" hidden></div>
 
 <script type="module">
-import { THEMES, THEME_IDS, ROLE_SIDE, artURL, J, P } from "./themes.js";
+import { THEMES, THEME_IDS, ROLE_SIDE, artURL, titleHTML, J, P } from "./themes.js";
 (() => {
   // ───────── 규칙 데이터 ─────────
   const V = "r3";
@@ -609,7 +616,7 @@ import { THEMES, THEME_IDS, ROLE_SIDE, artURL, J, P } from "./themes.js";
     de.style.setProperty("--back", `url(${img("back")})`);
     de.style.setProperty("--bgimg", `url(${img("bg")})`);
     const hb = document.getElementById("heroBg"); if (hb) hb.src = img("bg");
-    const br = document.getElementById("brand"); if (br) br.innerHTML = `<h1>${T.title}</h1><p>${T.tagline}</p>`;
+    const br = document.getElementById("brand"); if (br) br.innerHTML = `<h1>${titleHTML(T.title)}</h1><p>${T.tagline}</p>`;
     document.title = `${T.title} — 한 기기로`;
   }
   const SPLIT = { 5: [3, 2], 6: [4, 2], 7: [4, 3], 8: [5, 3], 9: [6, 3], 10: [6, 4] };

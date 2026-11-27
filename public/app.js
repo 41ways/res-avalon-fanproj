@@ -1,6 +1,6 @@
 // 온라인 화면. 처음 화면 → 방 목록 → 대기실 → 판 → 결과. 판의 규칙과 비밀은 서버(src/engine.js)가 쥐고,
 // 이 화면은 서버가 보내 준 "내 눈으로 본 판"만 그린다. 판 화면의 생김새·연출은 한 기기 모드(local.html)와 같다.
-import { THEMES, THEME_IDS, ROLE_SIDE, ROLE_ORDER, artURL, J, P } from "./themes.js";
+import { THEMES, THEME_IDS, ROLE_SIDE, ROLE_ORDER, artURL, titleHTML, J, P } from "./themes.js";
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -273,7 +273,7 @@ const SIDE = () => T.side;
 async function immerse() {
   SFX.horn();
   await cine("immerse", `<div class="imm" style="background-image:url(${img("hall")})"></div><div class="imm-v"></div>
-    <div class="cine-txt"><p class="cine-k">${esc(R.cfg.title || `방 ${R.code}`)} · ${R.players.length}명</p><h2 class="cine-title">${T.title}</h2>
+    <div class="cine-txt"><p class="cine-k">${esc(R.cfg.title || `방 ${R.code}`)} · ${R.players.length}명</p><h2 class="cine-title">${titleHTML(T.title)}</h2>
     <p class="lead" style="animation:fadeIn .6s 1.1s both">자리를 섞었습니다. 각자 역할을 받습니다.</p></div>`, 3400);
   UI.intro = false;
   const g = G();
@@ -300,7 +300,7 @@ function render() {
 }
 function renderBrand() {
   const inGame = view === "room" && G();
-  $("brand").innerHTML = `<h1>${T.title}</h1><p>${inGame ? `${esc(R.cfg.title || `방 ${R.code}`)} · ${R.code}` : T.tagline}</p>`;
+  $("brand").innerHTML = `<h1>${titleHTML(T.title)}</h1><p>${inGame ? `${esc(R.cfg.title || `방 ${R.code}`)} · ${R.code}` : T.tagline}</p>`;
 }
 function renderTop() {
   const nav = [], g = G();
@@ -760,7 +760,7 @@ function renderDock() {
       const amA = mine.role === "assassin";
       a = `<div><p class="kicker">마지막 지목</p><h3>${J(esc(nameAt(ai)), "이", "가")} ${J(roleName("star"), "을", "를")} 지목합니다</h3></div>
         <p class="lead">${SIDE().evil} 편 <b>${teamNames(evils)}</b>. 함께 의논한 뒤 ${J(roleName("assassin"), "이", "가")} 탁자에서 한 명을 누릅니다. 맞히면 ${SIDE().evil}의 역전승입니다.</p>
-        ${g.target == null ? "" : `<div class="banner bad">${J(esc(nameAt(g.target)), "을", "를")} ${roleName("star")}로 지목${amA ? "할까요?<small>되돌릴 수 없습니다</small>" : "하려 합니다"}</div>`}
+        ${g.target == null ? "" : `<div class="banner bad">${J(esc(nameAt(g.target)), "을", "를")} ${ro(roleName("star"))} 지목${amA ? "할까요?<small>되돌릴 수 없습니다</small>" : "하려 합니다"}</div>`}
         ${amA ? `<button class="btn red big wide myturn" data-act="kill" ${g.target == null ? "disabled" : ""}>${g.target == null ? `${roleName("star")}라 생각하는 사람을 누르세요` : "지목하기"}</button>` : ""}`;
       break;
     }
@@ -815,7 +815,7 @@ function roleFace() {
   else if (k.kind === "evil") {
     const subs = [];
     if (s.role === "assassin") subs.push(`${T.lit3If} ${J(roleName("star"), "을", "를")} 한 번 지목합니다. 맞히면 ${J(SIDE().evil, "이", "가")} 이깁니다.`);
-    if (s.role === "wisp") subs.push(`${roleName("watch")}에게는 당신이 ${roleName("star")}로 보입니다.`);
+    if (s.role === "wisp") subs.push(`${roleName("watch")}에게는 당신이 ${ro(roleName("star"))} 보입니다.`);
     if (s.role === "newmoon") subs.push(`${J(roleName("star"), "은", "는")} 당신을 보지 못합니다.`);
     if (k.wander) subs.push(T.kn.wanderHere);
     subs.push(`원정에서 ${J(T.cardG, "과", "와")} ${T.cardB} 중 하나를 고를 수 있습니다.`);

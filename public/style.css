@@ -66,13 +66,20 @@ b { color: #fff; }
 .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-top: calc(env(safe-area-inset-top, 0px) + 16px); }
 .brand h1 { font-family: var(--f-head); font-size: clamp(46px, 8vw, 78px); line-height: 1; letter-spacing: .05em; text-shadow: 0 2px 18px rgba(0, 0, 0, .6), 0 0 30px rgba(242, 199, 107, .25); }
 .brand p { font-family: var(--f-head); font-weight: 700; font-size: clamp(13px, 1.8vw, 16px); letter-spacing: .12em; color: var(--gold-hi); text-shadow: 0 1px 6px #000; margin-top: 4px; }
+/* 라틴 제목 로고: 윗줄 RESISTANCE(작게, 넓게), 아랫줄 AVALON(크게). em 이라 h1·장면 제목 크기를 따라간다 */
+.wm-pre, .wm-main { display: block; font-family: "Cinzel", var(--f-head); }
+.wm-pre { font-weight: 600; font-size: .27em; letter-spacing: .5em; text-transform: uppercase; color: var(--gold-hi); margin: 0 0 .2em .06em; }
+.wm-main { font-weight: 700; letter-spacing: inherit; }
+.brand .wm-main { letter-spacing: .1em; }
+.ingame .brand .wm-pre, .ingame .brand .wm-main { display: inline; }
+.ingame .brand .wm-pre { font-size: .42em; letter-spacing: .32em; margin: 0 .5em 0 0; vertical-align: .18em; }
 .topnav { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .topnav .btn { background: rgba(11, 17, 36, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 .ingame .hero { overflow: visible; }
 .ingame .hero-bg, .ingame .hero::after, .ingame #quests { display: none; }
 .ingame .topbar { align-items: center; padding-top: calc(env(safe-area-inset-top, 0px) + 10px); padding-bottom: 4px; }
 .ingame .brand { display: flex; align-items: baseline; gap: 10px; }
-.ingame .brand h1 { font-size: 30px; }
+.ingame .brand h1 { font-size: 28px; }
 .ingame .brand p { font-size: 12.5px; margin: 0; }
 
 /* 다섯 원정 (설정·끝 화면의 큰 줄) */

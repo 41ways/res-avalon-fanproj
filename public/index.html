@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>은빛 서약 — 숨은 역할 온라인 파티 게임</title>
+<title>Resistance:AVALON — 마피아 추리 온라인 파티 게임</title>
 <meta name="description" content="5~10명이 각자 폰으로 들어와 하는 숨은 역할 게임. 방을 만들고 초대 코드로 모여 다섯 원정을 떠난다. 은빛 서약 · 봉화 두 테마.">
-<meta property="og:title" content="은빛 서약 — 숨은 역할 온라인 파티 게임">
+<meta property="og:title" content="Resistance:AVALON — 마피아 추리 온라인 파티 게임">
 <meta property="og:description" content="방을 만들고 친구를 불러 5~10명이 하는 숨은 역할 게임. 비공식 팬 프로젝트.">
 <meta property="og:image" content="https://res-avalon-fanproj.41ways.workers.dev/art/og.jpg">
 <meta name="theme-color" content="#0b1124">
 <link rel="icon" href="art/knights/crown.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=East+Sea+Dokdo&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@700;800&family=Song+Myung&display=swap">
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=East+Sea+Dokdo&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@700;800&family=Song+Myung&display=swap">
+<link rel="stylesheet" href="style.css?v=2">
 <style>
 /* ── 온라인 전용: 처음 화면 · 방 목록 · 대기실 · 채팅 ── */
 :root { --bgimg: url(art/knights/bg.webp); --tok: url(art/knights/token.webp); --back: url(art/knights/back.webp); }
@@ -23,7 +23,7 @@ html[data-theme="bonghwa"] .quest .sh .n { display: none; }
 .hero.title { min-height: min(78vh, 640px); display: grid; align-content: end; }
 .hero.title .topnav { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 18px); right: max(16px, env(safe-area-inset-right, 0px)); }
 .hero.title .brand { flex-direction: column; align-items: flex-start; gap: 6px; }
-.hero.title .brand h1 { font-size: clamp(64px, 13vw, 140px); }
+.hero.title .brand h1 { font-size: clamp(56px, 12vw, 132px); }
 .hero.title .brand p { font-size: clamp(15px, 2.4vw, 20px); }
 .title-acts { display: flex; flex-wrap: wrap; gap: 12px; padding: 26px 0 40px; }
 .title-acts .btn { min-width: 180px; }
@@ -252,6 +252,6 @@ html[data-theme="bonghwa"] .quest .sh .n { display: none; }
 <div id="fx"></div>
 <div class="toast" id="toast" hidden></div>
 <div class="conn" id="conn" hidden>연결이 끊겼어요 · 다시 붙는 중</div>
-<script type="module" src="app.js?v=1"></script>
+<script type="module" src="app.js?v=2"></script>
 </body>
 </html>
