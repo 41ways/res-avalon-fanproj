@@ -300,7 +300,7 @@ function render() {
 }
 function renderBrand() {
   const inGame = view === "room" && G();
-  $("brand").innerHTML = `<h1>${titleHTML(T.title)}</h1><p>${inGame ? `${esc(R.cfg.title || `방 ${R.code}`)} · ${R.code}` : T.tagline}</p>`;
+  $("brand").innerHTML = `<h1>${titleHTML(T.title)}</h1><p>${inGame ? (R.cfg.title ? `${esc(R.cfg.title)} · ${R.code}` : `방 ${R.code}`) : T.tagline}</p>`;
 }
 function renderTop() {
   const nav = [], g = G();
@@ -823,7 +823,7 @@ function roleFace() {
   } else kn = { h: "아는 것", body: "없음", sub: `${T.kn.guardSub} 원정에서는 ${T.cardG}만 낼 수 있습니다.` };
   return `<div class="rolecard ${side}">
     <figure><img src="${roleArt(s.role, s.art)}" alt=""></figure>
-    <div><p class="rc-who">${J(esc(s.name), "은", "는")}</p><p class="rc-role">${R0.name}</p><span class="side">${SIDE()[side]} 편</span>
+    <div><p class="rc-who">${J(esc(s.name), "은", "는")}</p><p class="rc-role">${R0.name}</p><span class="rc-side">${SIDE()[side]} 편</span>
     <p class="rc-goal">${side === "good" ? T.goalG : T.goalE}</p>
     <p class="note">${R0.blurb}</p>
     <div class="know"><h4>${kn.h}</h4><p class="names-list">${kn.body}</p><p class="sub">${kn.sub}</p></div>

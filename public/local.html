@@ -359,8 +359,8 @@ main { position: relative; z-index: 2; padding-block: 18px 40px; }
 @media (max-width: 640px) { .rolecard { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; } .rolecard figure { max-width: 220px; } }
 .rolecard figure { position: relative; margin: 0; width: 100%; }
 .rolecard figure img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; }
-.rolecard .side { display: inline-block; font-size: 13px; padding: 1px 8px; border-radius: 4px; border: 1px solid var(--gold); color: var(--gold-hi); }
-.rolecard.evil .side { border-color: var(--red); color: var(--red-hi); }
+.rolecard .rc-side { display: inline-block; font-size: 13px; padding: 1px 8px; border-radius: 4px; border: 1px solid var(--gold); color: var(--gold-hi); }
+.rolecard.evil .rc-side { border-color: var(--red); color: var(--red-hi); }
 .rc-who { color: var(--dim); font-size: 14px; }
 .rc-role { font-family: var(--f-head); font-size: clamp(36px, 6.5vw, 56px); line-height: 1.05; margin: 4px 0 8px; word-break: keep-all; color: var(--gold-hi); }
 .rolecard.evil .rc-role { color: var(--red-hi); }
@@ -579,6 +579,7 @@ html[data-theme="bonghwa"] .brand h1 { font-family: "East Sea Dokdo", "Song Myun
 html[data-theme="bonghwa"] .brand p { font-family: "Song Myung", var(--f-head); }
 html[data-theme="bonghwa"] .quest .sh .n { inset: auto 0 14%; color: #EDE4D0; text-shadow: 0 1px 4px #000; font-size: clamp(13px, 2.2vw, 19px); }
 </style>
+<link rel="stylesheet" href="polish.css?v=1">
 </head>
 <body>
 <header class="hero" id="hero">
@@ -1408,7 +1409,7 @@ import { THEMES, THEME_IDS, ROLE_SIDE, artURL, titleHTML, J, P } from "./themes.
     const g = G(), p = g.players[i], R = ROLES[p.role], kn = knowledge(i);
     return `<div class="rolecard ${R.side}">
       <figure><img src="${img(p.art)}" alt=""></figure>
-      <div><p class="rc-who">${J(esc(p.name), "은", "는")}</p><p class="rc-role">${R.name}</p><span class="side">${SIDE[R.side]} 편</span>
+      <div><p class="rc-who">${J(esc(p.name), "은", "는")}</p><p class="rc-role">${R.name}</p><span class="rc-side">${SIDE[R.side]} 편</span>
       <p class="rc-goal">${R.side === "good" ? T.goalG : T.goalE}</p>
       <p class="note">${R.blurb}</p>
       <div class="know"><h4>${kn.h}</h4><p class="names-list">${kn.body}</p><p class="sub">${kn.sub}</p></div>
