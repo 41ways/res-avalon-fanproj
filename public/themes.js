@@ -89,7 +89,8 @@ export const THEMES = {
     opts: { watch: "별지기와 도깨비불, 불빛 둘을 본다", wisp: "파수꾼에게 별지기로 보인다", newmoon: "별지기에게 보이지 않는다", wander: "먹구름끼리도 서로 모른다" },
   },
 };
-export const THEME_IDS = ["knights", "bonghwa"];
+// 봉화는 데이터·그림을 남겨 두고 잠시 숨긴다(기사단 테마부터 마무리). 다시 켜려면 여기에 "bonghwa" 를 넣는다
+export const THEME_IDS = ["knights"];
 
 export function artURL(theme, k, base = "art/") {
   const T = THEMES[theme] || THEMES.knights;

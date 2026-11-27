@@ -9,6 +9,6 @@ for name in "$@"; do
     [ -n "$f" ] && break; sleep 1
   done
   [ -z "$f" ] && { echo "새 그림 없음: $name"; exit 1; }
-  dest=~/projects/roundtable/art/raw/$name.png
+  dest=~/workspace/res-avalon-fanproj/public/art/raw/$name.png
   mkdir -p ${dest:h}; touch -r "$f" $M; mv "$f" "$dest"; echo "$name $(sips -g pixelWidth -g pixelHeight $dest | tail -2 | awk '{print $2}' | xargs)"
 done

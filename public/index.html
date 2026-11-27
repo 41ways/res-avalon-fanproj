@@ -116,7 +116,10 @@ html[data-theme="bonghwa"] .quest .sh .n { display: none; }
 }
 @media (max-width: 900px) {
   .lobby-grid.room { grid-template-columns: minmax(0, 1fr); }
-  .lobby-grid.room .room-side { order: -1; display: grid; gap: 12px; }
+  .lobby-grid.room > section.stack { display: contents; }
+  .lobby-grid.room #lobbyHall { order: 0; }
+  .lobby-grid.room .room-side { order: 1; display: grid; gap: 12px; }
+  .lobby-grid.room > section.stack > .panel { order: 2; }
   .left { display: contents; }
   .board .stage-wrap { order: 0; } .board .dock { order: 1; } .board .chron { order: 2; }
   .end-grid { display: grid; gap: 14px; padding-top: 10px; }
@@ -129,6 +132,108 @@ html[data-theme="bonghwa"] .quest .sh .n { display: none; }
   .chatbox.float.open .chatlog { height: 42vh; }
   .chat-tog { display: inline-grid; place-items: center; flex: none; width: 40px; padding: 0; }
 }
+
+/* ── 장면: 내 자리에서 본 탁자. 다른 사람은 건너편 의자에 초상 카드로 앉는다 ── */
+.stage-wrap { width: 100%; }
+.hall { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden; isolation: isolate; --u: 6px; --cw: 9.8%;
+  background: #070a14 var(--hallimg) center 60% / cover no-repeat; user-select: none; -webkit-user-select: none;
+  box-shadow: 0 40px 90px -40px #000, 0 0 0 1px rgba(242, 199, 107, .22), inset 0 0 0 1px rgba(0, 0, 0, .6); transition: filter 1s; }
+.hall-v { position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse 75% 70% at 50% 62%, transparent 50%, rgba(4, 6, 14, .72) 100%), linear-gradient(180deg, rgba(4, 6, 14, .35), transparent 28%); }
+.hall.dark { filter: saturate(.75) brightness(.8) sepia(.25) hue-rotate(-18deg); }
+.hall.water .hall-v { background: radial-gradient(ellipse 75% 70% at 50% 62%, rgba(127, 214, 207, .08) 30%, rgba(4, 6, 14, .72) 100%); }
+.hall .hub { position: absolute; left: 47%; top: 77%; width: 40%; height: 30%; transform: translate(-50%, -50%); z-index: 5; display: grid; place-items: center; text-align: center; pointer-events: none; border-radius: 0; }
+.hall .hk, .hall .hs { text-shadow: 0 1px 6px #000, 0 0 2px #000; }
+.hall .hub::before { content: ""; position: absolute; inset: -6% -4%; z-index: -1; border-radius: 50%; background: radial-gradient(ellipse at 50% 50%, rgba(5, 7, 15, .78) 0%, rgba(5, 7, 15, .5) 45%, transparent 72%); }
+.hall .hk { color: var(--gold-hi); }
+.pc { position: absolute; width: calc(var(--cw) * var(--s)); transform: translate(-50%, -100%); border: 0; padding: 0; background: none; display: grid; justify-items: center; gap: calc(var(--u) * .5);
+  font-size: max(10px, calc(var(--u) * 1.45 * var(--s))); transition: left .7s var(--ease), top .7s var(--ease), width .7s var(--ease), opacity .4s; touch-action: manipulation; }
+.pc:disabled { cursor: default; }
+.pc-fr { position: relative; width: 100%; aspect-ratio: 4 / 5; border-radius: 12% 12% 7% 7% / 10% 10% 6% 6%; overflow: hidden; background: #0c1020;
+  border: max(1.5px, calc(var(--u) * .32)) solid #b99a58; transition: border-color .35s, box-shadow .35s, transform .25s, filter .4s;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .7), 0 calc(var(--u) * 1.4) calc(var(--u) * 2.4) rgba(0, 0, 0, .75); }
+.pc-fr::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 0 0 max(1px, calc(var(--u) * .2)) rgba(255, 230, 170, .28), inset 0 calc(var(--u) * -3) calc(var(--u) * 3) rgba(4, 6, 14, .55); }
+.pc-pt, .pc-rl { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: filter .4s, opacity .7s; }
+.pc-rl { opacity: 0; z-index: 1; }
+.pc.showrole .pc-rl { opacity: 1; }
+.pc-nm { position: relative; z-index: 2; font-family: var(--f-head); font-weight: 700; color: var(--ink); white-space: nowrap; max-width: 170%; overflow: hidden; text-overflow: ellipsis;
+  padding: .12em .65em; border-radius: 3px; border: 1px solid rgba(242, 199, 107, .35); background: linear-gradient(180deg, rgba(24, 31, 58, .95), rgba(8, 12, 26, .95)); box-shadow: 0 2px 8px rgba(0, 0, 0, .7); transition: color .3s, border-color .3s, background .3s; }
+.pc-tok { position: absolute; left: 50%; top: calc(100% + var(--u) * .4); width: 42%; transform: translate(-50%, 0) scale(0); transition: transform .4s var(--pop); filter: drop-shadow(0 calc(var(--u) * .6) calc(var(--u) * .8) rgba(0, 0, 0, .7)); pointer-events: none; }
+.pc.on .pc-tok { transform: translate(-50%, 0) scale(1); }
+.pc.me .pc-tok { top: auto; bottom: calc(100% - var(--u) * 2); left: calc(100% + var(--u) * 2); width: 34%; }
+.pc-seal { position: absolute; left: 50%; top: 46%; width: 72%; z-index: 4; transform: translate(-50%, -50%) scale(0) rotate(-12deg); opacity: 0; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .6)); }
+.pc.sv .pc-seal { opacity: 1; transform: translate(-50%, -50%) rotate(-12deg); }
+.pc.sv.anim .pc-seal { animation: pcSeal .5s var(--d, 0ms) cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes pcSeal { 0% { transform: translate(-50%, -50%) scale(2.4) rotate(-30deg); opacity: 0; } 100% { transform: translate(-50%, -50%) rotate(-12deg); opacity: 1; } }
+.pc.no .pc-pt { filter: saturate(.5) brightness(.6); }
+.pc-chk { position: absolute; right: 5%; top: 4%; z-index: 4; width: 26%; aspect-ratio: 1; border-radius: 50%; display: none; place-items: center; background: var(--gold); color: #2a1a05; font-weight: 800; font-size: max(9px, calc(var(--u) * 1.5 * var(--s))); box-shadow: 0 2px 6px rgba(0, 0, 0, .6); }
+.pc.voted .pc-chk, .pc.seen .pc-chk { display: grid; animation: pipIn .35s var(--pop); }
+.pc.lead .pc-nm { color: var(--gold-hi); border-color: var(--gold); }
+.pc.on .pc-fr { border-color: var(--gold-hi); box-shadow: 0 0 0 max(1px, calc(var(--u) * .3)) rgba(242, 199, 107, .35), 0 0 calc(var(--u) * 3.4) rgba(242, 199, 107, .65), 0 calc(var(--u) * 1.4) calc(var(--u) * 2.4) rgba(0, 0, 0, .75); }
+.pc.on .pc-nm { background: linear-gradient(180deg, rgba(110, 78, 20, .96), rgba(60, 40, 8, .96)); border-color: var(--gold); color: #fff; }
+.pc.pickable { cursor: pointer; }
+.pc.pickable .pc-fr { animation: beckon 2.4s ease-in-out infinite; }
+.pc.pickable:hover .pc-fr { transform: translateY(calc(var(--u) * -.8)); }
+@keyframes beckon { 50% { box-shadow: 0 0 0 max(1px, calc(var(--u) * .3)) rgba(242, 199, 107, .25), 0 0 calc(var(--u) * 2.4) rgba(242, 199, 107, .35), 0 calc(var(--u) * 1.4) calc(var(--u) * 2.4) rgba(0, 0, 0, .75); } }
+.pc.past { opacity: .45; }
+.pc.offline .pc-pt { filter: grayscale(1) brightness(.4); }
+.pc.offline .pc-nm { color: var(--dim); }
+.pc.target .pc-fr { border-color: var(--red); box-shadow: 0 0 0 max(1px, calc(var(--u) * .35)) rgba(226, 86, 106, .4), 0 0 calc(var(--u) * 4) rgba(226, 86, 106, .9); }
+.pc.pick-lamp .pc-fr { border-color: var(--teal); box-shadow: 0 0 calc(var(--u) * 4) rgba(127, 214, 207, .8); }
+.pc.evil.showrole .pc-fr { border-color: var(--red); }
+.pc.me .pc-nm { border-color: rgba(127, 214, 207, .5); }
+.h-crown, .h-lamp { position: absolute; z-index: 60; transform: translate(-50%, -100%); pointer-events: none; transition: left .75s var(--ease), top .75s var(--ease), opacity .35s; }
+.h-crown { width: calc(var(--cw) * .66); filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .65)) drop-shadow(0 0 14px rgba(255, 226, 160, .55)); }
+.h-lamp { width: calc(var(--cw) * .5); transform: translate(-50%, -50%); filter: drop-shadow(0 0 12px rgba(127, 214, 207, .8)); }
+.h-crown.off, .h-lamp.off { opacity: 0; }
+/* 대기실: 들어온 사람이 촛불처럼 나타나고, 나간 사람은 흐려진다 */
+.pc.arrive { animation: arrive .9s cubic-bezier(.2, .9, .3, 1) both; }
+@keyframes arrive { 0% { opacity: 0; transform: translate(-50%, -88%) scale(.82); filter: blur(8px) brightness(2.2); } 60% { opacity: 1; filter: blur(0) brightness(1.4); } 100% { transform: translate(-50%, -100%); filter: none; } }
+.pc.leave { opacity: 0; transform: translate(-50%, -92%) scale(.9); filter: blur(6px); transition: opacity .4s, transform .4s, filter .4s; }
+/* 판 시작: 카드가 탁자 가운데에서 제자리로 */
+.hall.deal .pc { animation: hallDeal .8s var(--d, 0ms) cubic-bezier(.2, .9, .3, 1) both; }
+@keyframes hallDeal { 0% { opacity: 0; transform: translate(-50%, -40%) scale(.5); filter: blur(4px); } 100% { opacity: 1; transform: translate(-50%, -100%); filter: none; } }
+.cine.immerse { background: #04060d; }
+.cine.immerse .imm { position: absolute; inset: 0; background: center 60% / cover no-repeat; animation: dive 3.6s cubic-bezier(.45, 0, .25, 1) both; }
+.cine.immerse .imm-v { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 55% at 50% 60%, transparent 30%, rgba(4, 6, 13, .92) 100%); animation: fadeIn 1.2s both; }
+.cine.immerse .cine-txt { position: relative; z-index: 2; }
+@keyframes dive { 0% { transform: scale(1); filter: brightness(.95); } 100% { transform: scale(1.55) translateY(7%); filter: brightness(.5) blur(1.5px); } }
+#lobbyHall { margin-bottom: 4px; }
+@media (max-width: 900px) {
+  .hall { aspect-ratio: 4 / 3; --cw: 12.5%; border-radius: 12px; }
+  .hall .hub { top: 80%; left: 42%; width: 62%; }
+  .pc-nm { max-width: 220%; }
+}
+.flipcard { border: 0; padding: 0; background: none; cursor: pointer; transition: transform .2s; }
+.flipcard:hover { transform: translateY(-4px) rotate(-1deg); }
+
+/* 건너편 사람: 액자 없이 의자에 앉은 인물. 아래쪽은 탁자에 스며들게 흐린다 */
+.pc.fig { width: calc(var(--cw) * 1.38 * var(--s)); gap: 0; }
+.pc.fig .pc-fr { aspect-ratio: auto; overflow: visible; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.pc.fig .pc-fr::after { display: none; }
+.pc.fig .pc-pt { position: relative; display: block; width: 100%; height: auto; object-fit: contain;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 66%, rgba(0, 0, 0, .55) 84%, transparent 100%); mask-image: linear-gradient(180deg, #000 0%, #000 66%, rgba(0, 0, 0, .55) 84%, transparent 100%);
+  filter: drop-shadow(0 calc(var(--u) * .6) calc(var(--u) * 1.2) rgba(0, 0, 0, .55)) brightness(.96); transition: filter .4s, transform .25s; }
+.pc.fig .pc-nm { margin-top: calc(var(--u) * -1.6); }
+.pc.fig .pc-tok { top: calc(100% + var(--u) * .2); width: 34%; }
+.pc.fig .pc-rl { position: absolute; inset: auto; left: 50%; top: -14%; width: 46%; height: auto; aspect-ratio: 1; transform: translate(-50%, -40%) scale(.6); border-radius: 50%; object-fit: cover;
+  border: max(1.5px, calc(var(--u) * .3)) solid var(--red); box-shadow: 0 0 calc(var(--u) * 2.4) rgba(226, 86, 106, .8); transition: opacity .6s, transform .6s var(--pop); z-index: 5; }
+.pc.fig.showrole .pc-rl { transform: translate(-50%, -40%) scale(1); }
+.pc.fig .pc-seal { top: 52%; width: 56%; }
+.pc.fig .pc-chk { right: 18%; top: 2%; width: 20%; }
+.pc.fig.on .pc-pt { filter: drop-shadow(0 0 calc(var(--u) * .5) rgba(255, 226, 160, .95)) drop-shadow(0 0 calc(var(--u) * 2.2) rgba(242, 199, 107, .75)) brightness(1.06); }
+.pc.fig.target .pc-pt { filter: drop-shadow(0 0 calc(var(--u) * .5) rgba(255, 140, 150, .95)) drop-shadow(0 0 calc(var(--u) * 2.4) rgba(226, 86, 106, .85)); }
+.pc.fig.pick-lamp .pc-pt { filter: drop-shadow(0 0 calc(var(--u) * 2.4) rgba(127, 214, 207, .9)); }
+.pc.fig.evil.showrole .pc-pt { filter: drop-shadow(0 0 calc(var(--u) * 2) rgba(226, 86, 106, .7)) saturate(.85); }
+.pc.fig.no .pc-pt { filter: saturate(.45) brightness(.62); }
+.pc.fig.offline .pc-pt { filter: grayscale(1) brightness(.45); opacity: .75; }
+.pc.fig.pickable .pc-fr { animation: none; }
+.pc.fig.pickable .pc-pt { animation: beckonFig 2.4s ease-in-out infinite; }
+.pc.fig.pickable:hover .pc-pt { transform: translateY(calc(var(--u) * -.6)); }
+@keyframes beckonFig { 50% { filter: drop-shadow(0 0 calc(var(--u) * 1.6) rgba(242, 199, 107, .55)) brightness(1.05); } }
+.pc.fig.arrive { animation: arriveFig 1.1s cubic-bezier(.2, .9, .3, 1) both; }
+@keyframes arriveFig { 0% { opacity: 0; transform: translate(-50%, -92%); filter: blur(10px) brightness(2.4); } 55% { opacity: 1; filter: blur(0) brightness(1.5); } 100% { transform: translate(-50%, -100%); filter: none; } }
 </style>
 </head>
 <body>

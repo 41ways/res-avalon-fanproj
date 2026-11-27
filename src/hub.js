@@ -9,7 +9,7 @@ import { Game, MIN, MAX, defaultOpts, SPLIT } from './engine.js';
 
 const FAST = typeof process !== 'undefined' && !!process.env && process.env.RA_FAST === '1';
 const LOBBY_GRACE = FAST ? 200 : 20_000;
-const THEMES = ['knights', 'bonghwa'];
+const THEMES = ['knights'];          // 봉화는 잠시 숨김 — public/themes.js 의 THEME_IDS 와 같이 바꾼다
 const TIMERS = [0, 60, 120, 180];
 
 const clean = (s, max) => String(s == null ? '' : s)
@@ -84,6 +84,7 @@ function removePlayer(room, id) {
 }
 
 function dropRoom(room) {
+  clearAuto(room);
   for (const p of room.players) if (p.ws) { send(p.ws, { t: 'err', msg: '방이 사라졌어요.', fatal: true }); p.ws.roomCode = null; p.ws.playerId = null; }
   rooms.delete(room.code);
   listChanged();
@@ -105,6 +106,32 @@ function startGame(room) {
   return true;
 }
 
+/* 결과 화면(표 공개 · 원정 공개)은 저절로 넘어간다. 화면의 연출 길이(app.js runReveal)와 맞춘다 */
+const AUTO_VOTE = n => FAST ? 30 : 2300 + n * 150 + 2500;
+function revealMs(p) {
+  if (FAST) return 30;
+  const m = p.cards.length; let t = 500 + 1650;
+  p.cards.forEach((c, k) => { const span = m > 1 ? k / (m - 1) : 1; t += 750 + 1850 * span * span + (c === 'fail' ? 1180 : 670); });
+  return t + 450 + 700 + 3500;
+}
+function clearAuto(room) { clearTimeout(room.autoT); room.autoT = null; room.autoAt = 0; }
+function armAuto(room) {
+  clearAuto(room);
+  const g = room.game; if (!g || room.phase !== 'playing') return;
+  const ms = g.step === 'voteResult' ? AUTO_VOTE(g.n) : g.step === 'missionReveal' ? revealMs(g.pending) : 0;
+  if (!ms) return;
+  const step = g.step, seq = g.seq;
+  room.autoAt = Date.now() + ms;
+  room.autoT = setTimeout(() => {
+    room.autoT = null; room.autoAt = 0;
+    if (room.game !== g || g.step !== step || g.seq !== seq) return;
+    try { step === 'voteResult' ? g.afterVote() : g.afterMission(); } catch (e) { console.error('auto', e); return; }
+    if (g.step === 'end') { room.phase = 'over'; listChanged(); }
+    armAuto(room);
+    pushState(room, true);
+  }, ms);
+}
+
 function act(room, p, m) {
   const g = room.game;
   if (!g || room.phase !== 'playing') return;
@@ -112,6 +139,7 @@ function act(room, p, m) {
   try { g.act(p.id, Object.assign({}, m, { host: room.hostId === p.id && m && m.a === 'next' })); }
   catch (e) { return send(p.ws, { t: 'err', msg: String(e.message || e) }); }
   if (g.step === 'end') { room.phase = 'over'; listChanged(); }
+  if (before !== g.step) armAuto(room);
   pushState(room, before !== g.step);
 }
 
@@ -122,7 +150,7 @@ function send(ws, obj) { if (ws && ws.readyState === 1) { try { ws.send(JSON.str
 function stateFor(room, me) {
   const base = {
     t: 'state', code: room.code, phase: room.phase, hostId: room.hostId, cfg: room.cfg, min: MIN, max: MAX,
-    gameNo: room.gameNo, now: Date.now(), you: me ? me.id : null,
+    gameNo: room.gameNo, now: Date.now(), you: me ? me.id : null, autoAt: room.autoAt || 0,
     players: room.players.map(p => ({ id: p.id, name: p.name, connected: p.connected, left: !!p.left })),
     split: SPLIT[Math.max(MIN, Math.min(MAX, room.players.length))],
   };
@@ -305,6 +333,7 @@ export function handle(ws, msg) {
     case 'chat': chatText(room, me, msg); break;
     case 'abort': {                                    // 판 접기 — 돌아오지 않는 사람이 있을 때
       if (!isHost || room.phase !== 'playing') return;
+      clearAuto(room);
       room.phase = 'lobby'; room.game = null;
       room.players = room.players.filter(p => !p.left);
       for (const p of room.players) if (!p.connected) armLeave(room, p);
@@ -316,6 +345,7 @@ export function handle(ws, msg) {
     }
     case 'again': {
       if (!isHost || room.phase !== 'over') return;
+      clearAuto(room);
       room.phase = 'lobby'; room.game = null;
       room.players = room.players.filter(p => !p.left);
       for (const p of room.players) if (!p.connected) armLeave(room, p);

@@ -196,7 +196,7 @@ function onMsg(m) {
       break;
     case "state": {
       if (m.seq && m.seq < lastSeq && R && R.code === m.code) return;
-      const prev = R; R = m; lastSeq = m.seq || 0; view = "room";
+      const prev = R; R = m; R._recv = Date.now(); lastSeq = m.seq || 0; view = "room";
       setTheme(R.cfg.theme);
       onState(prev, m);
       break;
@@ -218,7 +218,8 @@ function onState(prev, m) {
   if (!g) { UI.revealed = {}; render(); return; }
   if (pg && pg.step === "reveal" && g.step !== "reveal") UI.roleOpen = false;
   const moved = m.moved && pg && (pg.step !== g.step || pg.round !== g.round);
-  if (g.step === "reveal" && !g.seats[g.me]?.seen && !UI.ov) UI.ov = { k: "role" };
+  if (prev && prev.phase === "lobby" && m.phase === "playing") { UI.dealIn = true; UI.intro = true; immerse(); }
+  if (g.step === "reveal" && !g.seats[g.me]?.seen && !UI.ov && !UI.intro) UI.ov = { k: "role" };
   if (g.step !== "reveal" && UI.ov?.k === "role" && UI.ov.auto) UI.ov = null;
   if (g.step === "voteResult" && moved) UI.voteFlash = true;
   if (g.step === "missionReveal" && UI.revealed[g.round] == null) UI.revealed[g.round] = moved ? "go" : "done";
@@ -268,6 +269,16 @@ function onState(prev, m) {
   }
 }
 const SIDE = () => T.side;
+// 판 시작: 대기실 장면 속으로 다가가며 자리를 섞고, 카드가 깔린 뒤 역할 카드가 열린다
+async function immerse() {
+  SFX.horn();
+  await cine("immerse", `<div class="imm" style="background-image:url(${img("hall")})"></div><div class="imm-v"></div>
+    <div class="cine-txt"><p class="cine-k">${esc(R.cfg.title || `방 ${R.code}`)} · ${R.players.length}명</p><h2 class="cine-title">${T.title}</h2>
+    <p class="lead" style="animation:fadeIn .6s 1.1s both">자리를 섞었습니다. 각자 역할을 받습니다.</p></div>`, 3400);
+  UI.intro = false;
+  const g = G();
+  if (g && g.step === "reveal" && !g.seats[g.me]?.seen && !UI.ov) { UI.ov = { k: "role" }; renderOv(); }
+}
 // 으로/로: 받침 없거나 ㄹ 받침이면 "로"
 const ro = w => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return w + (c >= 0 && c <= 11171 && c % 28 && c % 28 !== 8 ? "으로" : "로"); };
 
@@ -342,8 +353,8 @@ function renderTitle() {
       <section class="panel"><h3>역할은 내 폰에만</h3><p>역할과 아는 것, 원정 카드와 표는 각자 화면에서 몰래 고릅니다. 표는 모두 낸 뒤 한꺼번에 열립니다.</p></section>
       <section class="panel"><h3>다섯 원정, 마지막 지목</h3><p>대장이 원정대를 꾸리고 모두 찬반을 냅니다. 셋을 먼저 가져가는 쪽이 이기지만, 마지막 지목이 남아 있습니다.</p></section>
     </div>
-    <section class="panel stack" style="margin-bottom:24px"><div><p class="kicker">테마</p><h3>어느 밤으로 갈까요</h3></div>
-      <div class="themes">${themes}</div><p class="note">방장이 대기실에서 바꿀 수 있습니다. 규칙은 같고 이름과 그림만 바뀝니다.</p></section>
+    ${THEME_IDS.length > 1 ? `<section class="panel stack" style="margin-bottom:24px"><div><p class="kicker">테마</p><h3>어느 밤으로 갈까요</h3></div>
+      <div class="themes">${themes}</div><p class="note">방장이 대기실에서 바꿀 수 있습니다. 규칙은 같고 이름과 그림만 바뀝니다.</p></section>` : ""}
     ${legalHTML()}`;
 }
 function renderOnline() { const e = $("online"); if (e) { e.className = `online ${online ? "" : "off"}`; e.innerHTML = `<i></i>${online ? `지금 ${online}명 접속` : "서버에 붙는 중"}`; } }
@@ -410,11 +421,15 @@ function renderLobby() {
   const seg = (key, cur, items) => `<div class="seg" role="group">${items.map(([v, t]) => `<button ${host ? `data-act="cfgSet" data-k="${key}" data-v="${v}"` : "disabled"} aria-pressed="${String(cur) === String(v)}">${t}</button>`).join("")}</div>`;
   const themes = THEME_IDS.map(k => { const t = THEMES[k]; return `<button ${host ? `data-act="cfgSet" data-k="theme" data-v="${k}"` : "disabled"} aria-pressed="${c.theme === k}"><img src="${artURL(k, "bg")}" alt=""><span class="t">${t.title}</span><span class="d">${t.pick}</span></button>`; }).join("");
   const url = `${location.origin}${location.pathname}?r=${R.code}`;
+  const keepHall = $("lobbyHall")?.dataset.code === R.code ? $("lobbyHall") : null;
+  if (keepHall) keepHall.remove();
   keepChat(() => { $("main").innerHTML = `
     <div class="lobby-grid room">
+      <section class="stack">
+      <div id="hallSlot"></div>
       <section class="panel stack">
         <div><p class="kicker">이번 판${host ? "" : " · 방장이 정합니다"}</p><h3>설정</h3></div>
-        <div class="themes">${themes}</div>
+        ${THEME_IDS.length > 1 ? `<div class="themes">${themes}</div>` : ""}
         <div class="comp">${chips(comp.g, "good")}${chips(comp.e, "evil")}</div>
         <p class="note">${J(roleName("star"), "과", "와")} ${J(roleName("assassin"), "은", "는")} 항상 들어갑니다. 빈자리는 ${J(roleName("guard"), "과", "와")} ${roleName("spy")}${P(roleName("spy"), "이", "가")} 채웁니다. 사람 수가 바뀌면 기본 구성으로 돌아갑니다${host ? `(직접 바꾸면 그대로 둡니다 · <button class="btn sm ghost" data-act="cfgReset" style="padding:2px 8px">기본으로</button>)` : ""}.</p>
         <div class="opts">${opts}</div>
@@ -423,6 +438,7 @@ function renderLobby() {
         ${host ? `<div class="row"><span class="sub-h">최대 인원</span>${seg("max", c.max, [[5, "5"], [6, "6"], [7, "7"], [8, "8"], [9, "9"], [10, "10"]])}</div>
           <div class="row"><button class="opt" data-act="cfgPriv" aria-pressed="${!!c.priv}" style="width:auto"><span class="box"></span><span><span class="t" style="font-size:15px">비공개 방</span></span></button></div>` : ""}
         ${legalHTML()}
+      </section>
       </section>
       <aside class="room-side">
         <div class="panel stack" style="gap:10px">
@@ -438,6 +454,10 @@ function renderLobby() {
         ${chatHTML("대기실 이야기")}
       </aside>
     </div>`; });
+  const slot = $("hallSlot");
+  if (keepHall) slot.replaceWith(keepHall);
+  else { slot.outerHTML = hallShell("lobbyHall", "lobby"); $("lobbyHall").dataset.code = R.code; UI.seenIds = new Set(); }
+  renderLobbyHall($("lobbyHall"));
 }
 function composition(n, o) {
   const [good, evil] = SPLIT[n];
@@ -464,8 +484,6 @@ function renderChat() { const el = $("chatlog"); if (!el) return; el.innerHTML =
 function scrollChat() { const el = $("chatlog"); if (el) el.scrollTop = el.scrollHeight; }
 
 // ── 판 ──
-const R_SEAT = 40, R_TOK = 25.5;
-const pos = (i, n, r) => { const a = 2 * Math.PI * i / n; return [50 + r * Math.sin(a), 50 - r * Math.cos(a)]; };
 function boardSkeleton() {
   if ($("board")) return;
   UI.roomsDrawn = false;
@@ -474,34 +492,95 @@ function boardSkeleton() {
     <aside class="side"><div class="panel qt" id="qtrack"></div><section class="panel dock" id="dock"></section>${chatHTML()}</aside></div>`;
   scrollChat();
 }
+// ── 장면: 내 자리에서 탁자 건너편을 본다. 다른 사람은 건너편 의자에, 나는 앞쪽 가장자리에 ──
+// 초상은 역할과 상관없는 "자리 초상"(art/knights/seat/p1~12). 방 안 사람의 id 순서로 나눠 모두에게 같게 보인다
+const PORTRAITS = 12;
+const faceNo = id => { const ids = (R?.players || []).map(p => p.id).sort((a, b) => a - b); const k = ids.indexOf(id); return ((k < 0 ? id : k) % PORTRAITS) + 1; };
+const portraitOf = id => artURL(T.id, `seat/p${faceNo(id)}`);     // 내 자리(앞쪽 구석)의 액자 초상
+const figureOf = id => artURL(T.id, `fig/f${faceNo(id)}`);        // 건너편에 앉은 사람(배경 없는 인물)
+function hallSpots(k) {
+  const out = [], step = k > 1 ? Math.min(11.2, 84 / (k - 1)) : 0;
+  for (let j = 0; j < k; j++) {
+    const dx = (j - (k - 1) / 2) * step, t = Math.min(1, Math.abs(dx) / 45);
+    out.push({ x: 50 + dx, y: 61 + 7 * t * t, s: .9 + .2 * t * t, z: 10 + Math.round(t * 10) });
+  }
+  return out;
+}
+// 자리 배치: 나를 앞에 두고 나머지를 내 왼쪽부터(시계 방향) 건너편에 늘어놓는다
+function hallLayout(n, me) {
+  const spots = hallSpots(n - 1), pos = {};
+  for (let j = 0; j < n - 1; j++) pos[(me + 1 + j) % n] = spots[j];
+  pos[me] = { x: 89, y: 97.5, s: 1.08, z: 40, me: true };
+  return pos;
+}
+function cardHTML(i, name, id, p, extra = "") {
+  return `<button class="pc ${p.me ? "me" : "fig"} ${extra}" data-i="${i}" data-id="${id}" style="left:${p.x}%;top:${p.y}%;--s:${p.s};z-index:${p.z}" aria-label="${esc(name)}">
+    <span class="pc-fr"><img class="pc-pt" src="${p.me ? portraitOf(id) : figureOf(id)}" alt=""><img class="pc-rl" alt=""><img class="pc-seal" alt=""><span class="pc-chk">✓</span></span>
+    <span class="pc-nm">${p.me ? "나 · " : ""}${esc(name)}</span><img class="pc-tok" src="${img("token")}" alt=""></button>`;
+}
+function hallShell(id, extraCls = "") {
+  return `<div class="hall ${extraCls}" id="${id}" style="--hallimg:url(${img("hall")})"><div class="hall-v"></div><div class="hub" id="hub"></div>
+    <img class="h-crown off" id="hCrown" src="${img("crown")}" alt="${T.leader}"><img class="h-lamp off" id="hLamp" src="${img("lantern")}" alt="${T.lamp}"></div>`;
+}
+function hallUnit(h) {
+  if (!h || h._ro) return;
+  const set = () => { if (h.clientWidth) h.style.setProperty("--u", `${h.clientWidth / 130}px`); };
+  set(); if (window.ResizeObserver) { h._ro = new ResizeObserver(set); h._ro.observe(h); }
+}
+// 왕관·등불은 한 장만 두고 그 사람 카드 위로 미끄러져 간다
+function floatTo(el, card, where) {
+  const h = el.parentElement; if (!card || !h) { el.classList.add("off"); return; }
+  const place = () => {
+    const hr = h.getBoundingClientRect(), cr = card.querySelector(".pc-fr").getBoundingClientRect();
+    if (!hr.width) return;
+    const x = where === "lamp" ? cr.right - hr.left : cr.left + cr.width / 2 - hr.left;
+    const y = where === "lamp" ? cr.bottom - hr.top - cr.height * .1 : cr.top - hr.top + cr.height * .08;
+    el.style.left = `${x / hr.width * 100}%`; el.style.top = `${y / hr.height * 100}%`;
+    el.classList.remove("off");
+  };
+  place(); requestAnimationFrame(place); setTimeout(place, 650);
+}
+
+// 대기실 장면: 들어온 사람이 의자에 나타난다
+function renderLobbyHall(h) {
+  hallUnit(h);
+  const n = R.players.length, me = Math.max(0, R.players.findIndex(p => p.id === R.you)), pos = hallLayout(Math.max(n, 1), me);
+  UI.seenIds = UI.seenIds || new Set();
+  const have = new Map([...h.querySelectorAll(".pc")].map(e => [+e.dataset.id, e]));
+  R.players.forEach((p, i) => {
+    const sp = pos[i]; let el = have.get(p.id);
+    if (!el) {
+      h.insertAdjacentHTML("beforeend", cardHTML(i, p.name, p.id, sp, UI.seenIds.has(p.id) ? "" : "arrive"));
+      el = h.querySelector(`.pc[data-id="${p.id}"]`);
+      if (!UI.seenIds.has(p.id) && UI.seenIds.size) SFX.place();
+      UI.seenIds.add(p.id);
+    } else {
+      el.style.left = `${sp.x}%`; el.style.top = `${sp.y}%`; el.style.setProperty("--s", sp.s); el.style.zIndex = sp.z;
+      el.classList.toggle("me", !!sp.me); el.classList.toggle("fig", !sp.me);
+      el.querySelector(".pc-nm").textContent = `${sp.me ? "나 · " : ""}${p.name}`;
+      const u = sp.me ? portraitOf(p.id) : figureOf(p.id), im = el.querySelector(".pc-pt"); if (im.getAttribute("src") !== u) im.src = u;
+    }
+    el.classList.toggle("offline", !p.connected);
+    el.disabled = true;
+    have.delete(p.id);
+  });
+  have.forEach(el => { el.classList.add("leave"); setTimeout(() => el.remove(), 450); });
+  const host = R.players.findIndex(p => p.id === R.hostId);
+  floatTo($("hCrown"), host >= 0 ? h.querySelector(`.pc[data-id="${R.players[host].id}"]`) : null, "crown");
+  $("hub").innerHTML = `<div class="hub-in"><p class="hk">대기실 · ${R.code}</p><p class="hbig">${n} / ${R.cfg.max}</p><p class="hs">${n < 5 ? `${5 - n}명 더 모이면 시작할 수 있어요` : "방장이 시작하면 자리를 섞습니다"}</p></div>`;
+}
+
 function stageSkeleton() {
-  const g = G(), n = g.n, key = g.seats.map(p => p.id).join("|") + R.gameNo;
+  const g = G(), key = g.seats.map(p => p.id).join("|") + R.gameNo;
   let st = $("stage");
   if (st && st.dataset.key === key) return st;
-  const seats = g.seats.map((p, i) => {
-    const [x, y] = pos(i, n, R_SEAT);
-    return `<button class="seat" data-i="${i}" style="left:${x}%;top:${y}%;${hue(i)}" aria-label="${esc(p.name)}">
-      <span class="med"><span class="f">${esc([...p.name][0])}</span><span class="b"></span></span>
-      <img class="seal" alt=""><span class="chk">확인</span><span class="nm">${esc(p.name)}</span></button>`;
-  }).join("");
-  const toks = g.seats.map((_, i) => { const [x, y] = pos(i, n, R_TOK); return `<img class="tok" data-i="${i}" src="${img("token")}" alt="" style="left:${x}%;top:${y}%">`; }).join("");
-  $("stageWrap").innerHTML = `<div class="stage" id="stage" data-key="${esc(key)}"><div class="table"></div><div class="hub" id="hub"></div>${toks}${seats}
-    <div class="orbit off" id="lampOrbit"><span class="o-item"><img class="lady-tok" src="${img("lantern")}" alt="${T.lamp}"></span></div>
-    <div class="orbit off" id="crownOrbit"><span class="o-item"><img class="crown-tok" src="${img("crown")}" alt="${T.leader}"></span></div></div>`;
-  UI.crownA = null; UI.lampA = null; UI.hubKey = "";
-  const st2 = $("stage"), unit = () => { if (st2.clientWidth) st2.style.setProperty("--u", `${st2.clientWidth / 100}px`); };
-  unit(); if (window.ResizeObserver) new ResizeObserver(unit).observe(st2); else addEventListener("resize", unit);
-  return st2;
-}
-function orbitTo(id, seat, prevKey, extra) {
-  const o = $(id), it = o.querySelector(".o-item"), n = G().n, target = 360 * seat / n;
-  let A = UI[prevKey];
-  if (A == null) { A = target; o.style.transition = it.style.transition = "none"; }
-  else { const d = ((target - A) % 360 + 540) % 360 - 180; A += d; o.style.transition = it.style.transition = ""; if (Math.abs(d) > 1) { o.classList.remove("bounce"); void o.offsetWidth; o.classList.add("bounce"); } }
-  UI[prevKey] = A;
-  o.style.transform = `rotate(${A}deg)`;
-  it.style.transform = `translate(-50%,-50%) translateY(calc(-${R_SEAT} * var(--u))) rotate(${-A}deg) ${extra}`;
-  if (o.style.transition === "none") { void o.offsetWidth; requestAnimationFrame(() => { o.style.transition = it.style.transition = ""; }); }
+  const pos = hallLayout(g.n, g.me);
+  $("stageWrap").innerHTML = hallShell("stage", UI.dealIn ? "deal" : "");
+  st = $("stage"); st.dataset.key = key;
+  st.insertAdjacentHTML("beforeend", g.seats.map((s, i) => cardHTML(i, s.name, s.id, pos[i])).join(""));
+  if (UI.dealIn) { [...st.querySelectorAll(".pc")].forEach((el, k) => el.style.setProperty("--d", `${200 + k * 110}ms`)); setTimeout(() => st.classList.remove("deal"), 2600); UI.dealIn = false; }
+  hallUnit(st); UI.hubKey = "";
+  return st;
 }
 function renderStage() {
   const g = G(), n = g.n, st = stageSkeleton(), me = g.me;
@@ -511,8 +590,8 @@ function renderStage() {
   const pl = id => R.players.find(p => p.id === id);
   st.classList.toggle("dark", g.step === "assassin");
   st.classList.toggle("water", g.step === "lamp");
-  st.querySelectorAll(".seat").forEach(el => {
-    const i = +el.dataset.i, cls = ["seat"], on = showTeam && g.team.includes(i), s = g.seats[i];
+  st.querySelectorAll(".pc").forEach(el => {
+    const i = +el.dataset.i, s = g.seats[i], cls = ["pc", i === me ? "" : "fig"], on = showTeam && g.team.includes(i);
     let a = "", label = s.name, seal = "";
     if (i === me) cls.push("me");
     if (pl(s.id) && !pl(s.id).connected) { cls.push("offline"); label += ", 연결 끊김"; }
@@ -535,23 +614,19 @@ function renderStage() {
       if (i === L.holder) {}
       else if (L.past.includes(i)) cls.push("past");
       else if (me === L.holder && L.pick == null) { a = "lampPick"; cls.push("pickable"); }
-      if (L.pick === i) cls.push("target", "pick-lady");
+      if (L.pick === i) cls.push("target", "pick-lamp");
     }
-    const b = el.querySelector(".med .b");
-    if (cls.includes("showrole")) b.style.backgroundImage = `url(${roleArt(s.role, s.art)})`; else b.style.backgroundImage = "";
-    el.className = cls.join(" ");
+    const rl = el.querySelector(".pc-rl");
+    if (cls.includes("showrole")) { const u = roleArt(s.role, s.art); if (rl.dataset.u !== u) { rl.src = u; rl.dataset.u = u; } }
+    el.className = cls.filter(Boolean).join(" ");
     if (a) { el.dataset.act = a; el.disabled = false; } else { delete el.dataset.act; el.disabled = true; }
     el.setAttribute("aria-label", label);
-    const si = el.querySelector(".seal");
+    const si = el.querySelector(".pc-seal");
     if (seal) { if (si.dataset.k !== seal) { si.src = img(seal); si.dataset.k = seal; } } else { si.removeAttribute("src"); si.dataset.k = ""; }
   });
-  st.querySelectorAll(".tok").forEach(t => t.classList.toggle("show", showTeam && g.team.includes(+t.dataset.i)));
   const crownOn = !["assassin", "lamp", "end"].includes(g.step) && (g.step !== "reveal" || g.seats.every(s => s.seen));
-  $("crownOrbit").classList.toggle("off", !crownOn);
-  orbitTo("crownOrbit", g.leader, "crownA", "translateY(calc(-7.4 * var(--u)))");
-  const lampOn = !!g.lamp && g.step !== "assassin";
-  $("lampOrbit").classList.toggle("off", !lampOn);
-  if (g.lamp) orbitTo("lampOrbit", g.lamp.holder, "lampA", "translate(calc(5 * var(--u)), calc(4.2 * var(--u)))");
+  if (crownOn) floatTo($("hCrown"), st.querySelector(`.pc[data-i="${g.leader}"]`), "crown"); else $("hCrown").classList.add("off");
+  if (g.lamp && g.step !== "assassin") floatTo($("hLamp"), st.querySelector(`.pc[data-i="${g.lamp.holder}"]`), "lamp"); else $("hLamp").classList.add("off");
   renderHub();
 }
 function renderHub() {
@@ -627,7 +702,7 @@ function renderDock() {
   const g = G(), n = g.n, need = g.sizes[g.round], dock = $("dock"), me = g.me, mine = g.seats[me];
   let a = "", kind = "";
   const L = g.leader === me, leaderName = esc(nameAt(g.leader));
-  const nextBtn = (txt) => (L || isHost()) ? `<button class="btn gold big wide" data-act="next">${txt}</button>` : `<p class="waitnote">${T.leader} ${J(leaderName, "이", "가")} 넘기기를 기다리는 중</p>`;
+  const nextBtn = (txt) => `<p class="waitnote autonext" data-auto="${R.autoAt || 0}">${txt} · <b class="cd"></b></p>`;
   switch (g.step) {
     case "reveal": {
       const k = g.seats.filter(s => s.seen).length;
@@ -776,7 +851,7 @@ function renderOv() {
   else if (o.k === "role" && g?.know) {
     const seen = g.seats[g.me].seen;
     h = `<div class="ov-in"><p class="kicker">${esc(nameAt(g.me))}의 역할 · 다른 사람에게 화면이 보이지 않게</p>
-      ${UI.roleOpen ? roleFace() : `<img class="ov-back" src="${img("back")}" alt=""><p class="lead">카드를 눌러 뒤집으세요.</p>`}
+      ${UI.roleOpen ? roleFace() : `<button class="flipcard" data-act="roleShow" aria-label="카드 뒤집기"><img class="ov-back" src="${img("back")}" alt=""></button><p class="lead">카드를 눌러 뒤집으세요.</p>`}
       <div class="row" style="justify-content:center">${UI.roleOpen ? `<button class="btn" data-act="roleHide">가리기</button>` : `<button class="btn gold big" data-act="roleShow">카드 뒤집기</button>`}
       ${g.step === "reveal" && !seen ? `<button class="btn gold big" data-act="seen" ${UI.roleOpen ? "" : "disabled"}>확인했어요</button>` : `<button class="btn" data-act="ov-x">닫기</button>`}</div></div>`;
   } else if (o.k === "mission" && g?.step === "mission") {
@@ -796,9 +871,9 @@ function renderOv() {
 }
 
 function revealNext() {
-  const g = G(), L = g.leader === g.me || isHost();
+  const g = G();
   const lbl = g.quests.filter(q => q && q.result === "fail").length >= 3 ? "결과 보기" : g.quests.filter(q => q && q.result === "ok").length >= 3 ? "마지막 지목으로" : g.lamp && [1, 2, 3].includes(g.round) ? ro(T.lamp) : `다음 ${ro(T.unit)}`;
-  return `${L ? `<button class="btn gold big" data-act="next">${lbl}</button>` : `<p class="waitnote">${T.leader} ${J(esc(nameAt(g.leader)), "이", "가")} 넘깁니다</p>`}<button class="btn" data-act="closeReveal">닫기</button>`;
+  return `<p class="waitnote autonext" data-auto="${R.autoAt || 0}">${lbl} · <b class="cd"></b></p><button class="btn" data-act="closeReveal">닫기</button>`;
 }
 function revealHTML() {
   const g = G(), p = g.pending, done = UI.revealed[g.round] === "done", ok = p.result === "ok";
@@ -960,8 +1035,18 @@ document.addEventListener("keydown", e => {
 });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && wsWanted && (!ws || ws.readyState > 1)) connect(); });
 
+// 저절로 넘어가기까지 남은 초
+setInterval(() => {
+  document.querySelectorAll(".autonext").forEach(el => {
+    const at = +el.dataset.auto, cd = el.querySelector(".cd"); if (!cd) return;
+    const skew = R ? (R.now - R._recv || 0) : 0;
+    const left = at ? Math.max(0, Math.ceil((at - (Date.now() + skew)) / 1000)) : 0;
+    cd.textContent = at ? (left ? `${left}초 뒤 넘어갑니다` : "넘어가는 중") : "곧 넘어갑니다";
+  });
+}, 250);
+
 // ───────── 시작 ─────────
-setTheme(LS.get("ra.theme", "knights"));
+setTheme(THEME_IDS.includes(LS.get("ra.theme", "knights")) ? LS.get("ra.theme", "knights") : "knights");
 if (sess || inviteCode) view = "rooms";
 render();
 connect();

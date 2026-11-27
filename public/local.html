@@ -590,7 +590,7 @@ html[data-theme="bonghwa"] .quest .sh .n { inset: auto 0 14%; color: #EDE4D0; te
 <div class="toast" id="toast" hidden></div>
 
 <script type="module">
-import { THEMES, ROLE_SIDE, artURL, J, P } from "./themes.js";
+import { THEMES, THEME_IDS, ROLE_SIDE, artURL, J, P } from "./themes.js";
 (() => {
   // ───────── 규칙 데이터 ─────────
   const V = "r3";
@@ -641,7 +641,7 @@ import { THEMES, ROLE_SIDE, artURL, J, P } from "./themes.js";
 
   const freshCfg = p => ({
     n: p?.n ?? 6, names: p?.names ?? Array(10).fill(""), opts: p?.opts ?? defaultOpts(p?.n ?? 6),
-    voteMode: p?.voteMode ?? "open", lady: p?.lady ?? ((p?.n ?? 6) >= 7), timer: p?.timer ?? 0, theme: THEMES[p?.theme] ? p.theme : "knights",
+    voteMode: p?.voteMode ?? "open", lady: p?.lady ?? ((p?.n ?? 6) >= 7), timer: p?.timer ?? 0, theme: THEME_IDS.includes(p?.theme) ? p.theme : "knights",
   });
   const fresh = p => ({ phase: "setup", cfg: freshCfg(p), g: null, undo: [] });
 
@@ -1224,13 +1224,13 @@ import { THEMES, ROLE_SIDE, artURL, J, P } from "./themes.js";
       return `<button class="opt" data-act="opt" data-k="${o.k}" aria-pressed="${on}" ${block ? "disabled" : ""}><span class="box"></span><span><span class="t">${o.t}</span> <span class="d"><span class="${o.side === "good" ? "side-g" : "side-e"}">${SIDE[o.side]}</span> · ${o.d}</span>${block ? `<br><span class="d">${SIDE.evil} 자리가 모자랍니다</span>` : ""}</span></button>`;
     }).join("");
     const seg = (act, cur, list) => `<div class="seg" role="group">${list.map(([v, t]) => `<button data-act="${act}" data-v="${v}" aria-pressed="${String(cur) === String(v)}">${t}</button>`).join("")}</div>`;
-    const themes = Object.values(THEMES).map(t => `<button data-act="theme" data-v="${t.id}" aria-pressed="${c.theme === t.id}"><img src="${artURL(t.id, "bg")}?v=${V}" alt=""><span class="t">${t.title}</span><span class="d">${t.pick}</span></button>`).join("");
+    const themes = THEME_IDS.length < 2 ? "" : THEME_IDS.map(k => THEMES[k]).map(t => `<button data-act="theme" data-v="${t.id}" aria-pressed="${c.theme === t.id}"><img src="${artURL(t.id, "bg")}?v=${V}" alt=""><span class="t">${t.title}</span><span class="d">${t.pick}</span></button>`).join("");
     $("main").innerHTML = `
       <div class="setup">
         <section class="panel stack">
-          <div><p class="kicker">테마</p><h3>어느 밤으로 갈까요</h3></div>
+          ${themes ? `<div><p class="kicker">테마</p><h3>어느 밤으로 갈까요</h3></div>
           <div class="theme-pick" role="group" aria-label="테마">${themes}</div>
-          <p class="note">규칙은 같고 이름과 그림만 바뀝니다. 판 중에는 바꿀 수 없습니다.</p>
+          <p class="note">규칙은 같고 이름과 그림만 바뀝니다. 판 중에는 바꿀 수 없습니다.</p>` : ""}
           <div><p class="kicker">모일 사람</p><h3>몇 명이 둘러앉았나요</h3></div>
           <div class="row" style="justify-content:space-between">
             <div class="stepper"><button class="btn" data-act="n-" aria-label="한 명 빼기" ${c.n <= 5 ? "disabled" : ""}>−</button><output>${c.n}</output><button class="btn" data-act="n+" aria-label="한 명 더하기" ${c.n >= 10 ? "disabled" : ""}>+</button></div>

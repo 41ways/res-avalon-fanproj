@@ -33,9 +33,8 @@ for (let k = 0; k < +N; k++) {
           } else act({ a: 'propose' });
           break;
         case 'vote': if (g.myVote == null) act({ a: 'vote', v: Math.random() < .7 }); break;
-        case 'voteResult': if (g.leader === me) act({ a: 'next' }); break;
+        // 표 공개 · 원정 공개는 서버가 저절로 넘긴다
         case 'mission': if (g.team.includes(me) && !g.myCard) act({ a: 'card', v: EVIL.has(mine.role) && Math.random() < +failP ? 'fail' : 'ok' }); break;
-        case 'missionReveal': if (g.leader === me) setTimeout(() => act({ a: 'next' }), 9000); break;
         case 'lamp':
           if (g.lamp.holder !== me) break;
           if (g.lamp.pick == null) act({ a: 'pick', i: pick([...Array(g.n).keys()].filter(i => i !== me && !g.lamp.past.includes(i))) });
